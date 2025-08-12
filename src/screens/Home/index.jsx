@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { Row, Col, Card, Button, Container, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { SetDateFilter, setSingleNews, SetSearchNews, SetNews } from '../../redux/category';
+import { setSingleNews, SetSearchNews, SetNews } from '../../redux/category';
 import { AddBookmark, RemoveBookMark } from '../../redux/Bookmark';
 import { useState, useEffect } from 'react';
 import { FetchNews } from '../../Networking/newsAPi';
@@ -11,106 +11,45 @@ export default function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [data, setdata] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [tempSearchTerm, setTempSearchTerm] = useState(""); // search box ka local state
-  const [selectedDate, setSelectedDate] = useState();
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [tempSearchTerm, setTempSearchTerm] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
   const keyword = useSelector((state) => state.Category.SearchNews);
-  const dateFilteredNews = useSelector((state) => state.Category.dateFilteredNews);
   const bookmarks = useSelector((state) => state.Bookmark);
-  const dataToShow = useSelector((state) => state.Category.news)
+  const dataToShow = useSelector((state) => state.Category.news);
 
   const isBookMarked = (item) => bookmarks.some((article) => article.url === item.url);
 
-  // First mount log
-  // Fetch news when keyword changes
-  async function getNewsByKeyword(searchKey) {
+  // Fetch news based on keyword & date
+  const getNews = async (searchKey, date) => {
     try {
-      console.log("Searching news for:", searchKey);
-      const newsData = await FetchNews(searchKey);
-      console.log("data is ", newsData.result.articles);
-      console.log("data to show", dataToShow);
-      
-      dispatch(SetNews(newsData.result.articles || []));
-      setdata(newsData.result.articles || []);
+      setLoading(true);
+      const newsData = await FetchNews(searchKey || "india", date);
+      const articles = newsData.result?.articles || [];
+      dispatch(SetNews(articles));
     } catch (error) {
       console.log(error);
-    }
-  }
-
-  useEffect(() => {
-    if (keyword && keyword.trim() !== '') {
-      getNewsByKeyword(keyword);
-    }
-  }, [keyword]);
-
-  // Search button 
-  const handleSearchClick = async () => {
-    if (!tempSearchTerm.trim()) return;
-    dispatch(SetSearchNews(tempSearchTerm)); // Redux me keyword store
-    setLoading(true);
-    try {
-      const newsData = await FetchNews(tempSearchTerm);
-      setdata(newsData.result.articles || []);
-      dispatch(SetNews(newsData.result.articles || []));
-      setTempSearchTerm("");
-    } catch (error) {
-      console.log(error);
+      dispatch(SetNews([])); // Clear data on error
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch news when date changes
+  // Handle Search
+  const handleSearchClick = () => {
+    if (!tempSearchTerm.trim()) return;
+    dispatch(SetSearchNews(tempSearchTerm));
+    getNews(tempSearchTerm, selectedDate);
+    setTempSearchTerm("");
+  };
+
+  // When keyword or selectedDate changes, fetch data
   useEffect(() => {
-    const loadNewsByDate = async () => {
-      try {
-        if (selectedDate) {
-          setLoading(true);
-          const res = await FetchNews("india", selectedDate);
-          dispatch(SetNews(res.result.articles || []));
-          console.log("date data",dataToShow);
-          
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadNewsByDate();
-  }, [selectedDate]);
-
-  // Live clock
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Default news (on first load if no keyword/date)
-  useEffect(() => {
-    const loadDefaultNews = async () => {
-      try {
-        setLoading(true);
-        const newsData = await FetchNews("india"); // Default keyword
-        console.log("default data", dataToShow);
-        
-
-        setdata(newsData.result.articles || []);
-        dispatch(SetNews(newsData.result.articles || []));
-
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!keyword && !selectedDate) {
-      loadDefaultNews();
+    if (keyword || selectedDate) {
+      getNews(keyword, selectedDate);
+    } else {
+      getNews("india");
     }
   }, [keyword, selectedDate]);
 
@@ -127,6 +66,7 @@ export default function Home() {
     dispatch(setSingleNews(item));
     navigate(`/news/${encodeURIComponent(item.title)}`);
   };
+
   return (
     <div style={{ marginTop: "90px" }}>
       {/* Header */}
@@ -136,8 +76,6 @@ export default function Home() {
           padding: "15px 0",
           borderBottom: "1px solid #dee2e6",
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
-          zIndex: 1000,
-          position: "relative",
         }}
       >
         <Container>
@@ -149,7 +87,7 @@ export default function Home() {
                 className="d-flex flex-column flex-md-row align-items-md-center"
               >
                 <Form.Label className="mb-1 mb-md-0 me-md-2 fw-semibold">
-                  📅 Filter by Date:
+                  📅 News by Date:
                 </Form.Label>
                 <Form.Control
                   type="date"
@@ -180,16 +118,9 @@ export default function Home() {
                   placeholder="Search news..."
                   value={tempSearchTerm}
                   onChange={(e) => setTempSearchTerm(e.target.value)}
-                  style={{
-                    maxWidth: "250px",
-                    marginRight: "10px"
-                  }}
+                  style={{ maxWidth: "250px", marginRight: "10px" }}
                 />
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={handleSearchClick}
-                >
+                <Button type="button" variant="primary" onClick={handleSearchClick}>
                   Search
                 </Button>
               </Form>
@@ -199,68 +130,49 @@ export default function Home() {
       </div>
 
       {/* Trending marquee */}
-      {dataToShow.length > 0 &&
+      {dataToShow.length > 0 && (
         <marquee
           behavior="scroll"
           direction="left"
           scrollamount="6"
-          style={{ backgroundColor: "#f8d7da", color: "#721c24", padding: "10px", fontWeight: "bold" }}
+          style={{
+            backgroundColor: "#f8d7da",
+            color: "#721c24",
+            padding: "10px",
+            fontWeight: "bold",
+          }}
         >
-          "<u>Trending News</u>" {dataToShow
-            .slice(0, 5)
-            .map((item) => item.title)
-            .join(" 🔥 ")}
+          "<u>Trending News</u>"{" "}
+          {dataToShow.slice(0, 5).map((item) => item.title).join(" 🔥 ")}
         </marquee>
-      }
+      )}
+
 
       {/* News cards */}
-      <Row xs={1} md={2} lg={4} className="g-4 p-3">
+      <Row xs={1} md={2} lg={4} className="g-4 p-3 no-news">
+        {!loading && dataToShow.length === 0 && (
+          <Col className="text-center">
+            <h5>No News Found</h5>
+          </Col>
+        )}
+
         {dataToShow.map((item, index) => (
           <Col key={index}>
             <Card
-              className="h-100 shadow-sm border-0 card-hover"
-              style={{
-                transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                cursor: "pointer",
-              }}
+              className="news-card h-100 border-0"
               onClick={() => handleCardClick(item)}
             >
               {item.urlToImage && (
-                <Card.Img
-                  variant="top"
-                  src={item.urlToImage}
-                  alt="news"
-                  style={{
-                    height: "140px",
-                    objectFit: "cover",
-                    borderTopLeftRadius: "6px",
-                    borderTopRightRadius: "6px",
-                  }}
-                />
+                <Card.Img variant="top" src={item.urlToImage} alt="news" />
               )}
-              <Card.Body className="d-flex flex-column justify-content-between">
+              <Card.Body className="news-card-body">
                 <div>
-                  <Card.Title className="fw-semibold" style={{ fontSize: "0.95rem" }}>
-                    {item.title.length > 80 ? item.title.slice(0, 80) + "..." : item.title}
-                  </Card.Title>
-                  <Card.Text
-                    className="text-muted"
-                    style={{
-                      fontSize: "0.85rem",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      minHeight: "3.6em"
-                    }}
-                  >
-                    {item.description}
-                  </Card.Text>
+                  <Card.Title className="news-card-title">{item.title}</Card.Title>
+                  <Card.Text className="news-card-text">{item.description}</Card.Text>
                 </div>
                 <Button
                   variant={isBookMarked(item) ? "outline-danger" : "outline-primary"}
-                  className="mt-3"
+                  className="news-save-btn"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSave(item);
@@ -273,8 +185,10 @@ export default function Home() {
             </Card>
           </Col>
         ))}
-        <center><SpinerCom loading={loading} /></center>
+
+          <SpinerCom loading={loading} />
       </Row>
+
     </div>
   );
 }

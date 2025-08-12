@@ -59,62 +59,68 @@ export default function Category() {
                     behavior="scroll"
                     direction="left"
                     scrollamount="6"
-                    style={{ backgroundColor: "#f8d7da", color: "#721c24", padding: "10px", fontWeight: "bold" }}
+                    style={{
+                        backgroundColor: "#f8d7da",
+                        color: "#721c24",
+                        padding: "10px",
+                        fontWeight: "bold",
+                    }}
                 >
-                    "<u>Trending News</u>"  {Data
-                        .slice(0, 5)
-                        .map((item) => item.title)
-                        .join(" 🔥 ")}
+                    "<u>Trending News</u>"{" "}
+                    {Data.slice(0, 5).map((item) => item.title).join(" 🔥 ")}
                 </marquee>
             )}
-            <Container >
+
+            <Container>
                 <Row xs={1} sm={2} md={3} lg={4} className="g-4">
                     {Data.map((item, index) => (
                         <Col key={index}>
-                            <Card >
+                            <Card
+                                className="news-card h-100 border-0"
+                                onClick={() => handleCardClick(item)}
+                            >
                                 {item.urlToImage ? (
-                                    <div onClick={() => handleCardClick(item)}>
-                                        <Card.Img
-                                            variant="top"
-                                            src={item.urlToImage}
-                                            alt="news"
-
-                                        />
-                                    </div>
+                                    <Card.Img
+                                        variant="top"
+                                        src={item.urlToImage}
+                                        alt="news"
+                                    />
                                 ) : (
-                                    <div >No Image Available</div>
+                                    <div className="no-image">No Image Available</div>
                                 )}
 
-                                <Card.Body className="d-flex flex-column justify-content-between">
-                                    <div onClick={() => handleCardClick(item)} style={{ cursor: "pointer" }}>
-                                        <Card.Title >
-                                            {item.title.length > 100
-                                                ? item.title.slice(0, 100) + "..."
-                                                : item.title}
+                                <Card.Body className="news-card-body">
+                                    <div>
+                                        <Card.Title className="news-card-title">
+                                            {item.title}
                                         </Card.Title>
-                                        <Card.Text >
-                                            {item.description
-                                                ? item.description.length > 120
-                                                    ? item.description.slice(0, 120) + "..."
-                                                    : item.description
-                                                : "No description available."}
+                                        <Card.Text className="news-card-text">
+                                            {item.description || "No description available."}
                                         </Card.Text>
                                     </div>
 
                                     <Button
-                                        variant={IsbookMarked(item) ? "danger" : "primary"}
-                                        className="mt-3"
-                                        onClick={() => handleSave(item)}
+                                        variant={IsbookMarked(item) ? "outline-danger" : "outline-primary"}
+                                        className="news-save-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSave(item);
+                                        }}
+                                        size="sm"
                                     >
-                                        {IsbookMarked(item) ? "Remove Article" : "Save Article"}
+                                        {IsbookMarked(item) ? "Remove" : "Save"}
                                     </Button>
                                 </Card.Body>
                             </Card>
                         </Col>
                     ))}
-                    <SpinerCom loading={loading} />
                 </Row>
+
+                <center>
+                    <SpinerCom loading={loading} />
+                </center>
             </Container>
         </div>
     );
+
 }

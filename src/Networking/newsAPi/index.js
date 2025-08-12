@@ -1,7 +1,7 @@
 const apikey = "a2a124d4b006486eb5418207c706c2ec";
 // const apikey = "cb6d0462dc43418496699cbfd4917b61";
 
-export const FetchNews = async (keyword, date = null, useTopHeadlines = false) => {
+export const FetchNews = async (keyword = "india", date = null, useTopHeadlines = false) => {
     // const url = `https://newsapi.org/v2/top-headlines?country=in&category=${category}&apiKey=${apikey}`;
 
     // let url = `https://newsapi.org/v2/everything?q=${keyword}&apiKey=${apikey}`
@@ -9,17 +9,17 @@ export const FetchNews = async (keyword, date = null, useTopHeadlines = false) =
 
     if (useTopHeadlines) {
         // Top headlines (default home view)
-        console.log("headline");
-        
+        // console.log("headline");
+
         url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=${apikey}`;
     } else if (date) {
-        console.log("date");
-        
+        // console.log("date");
+
 
         url = `https://newsapi.org/v2/everything?q=${keyword}&from=${date}&to=${date}&sortBy=popularity&apiKey=${apikey}`;
     } else {
-        console.log("keywords");
-        
+        // console.log("keywords");
+
 
         url = `https://newsapi.org/v2/everything?q=${keyword}&sortBy=popularity&apiKey=${apikey}`;
     }

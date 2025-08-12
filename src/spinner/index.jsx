@@ -1,14 +1,14 @@
-import { RingLoader } from "react-spinners";
+import { PropagateLoader
+ } from "react-spinners";
 export default function SpinerCom(props) {
     return (
-
-        <RingLoader className="mx-auto"
+        <PropagateLoader
+            className="mx-auto"
             color="navy"
             loading={props.loading}
-            size={150}
+            size={10}
             aria-label="Loading Spinner"
             data-testid="loader"
         />
-
     );
 }
