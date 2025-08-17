@@ -6,10 +6,13 @@ import { AddBookmark, RemoveBookMark } from '../../redux/Bookmark';
 import { useState, useEffect } from 'react';
 import { FetchNews } from '../../Networking/newsAPi';
 import SpinerCom from '../../spinner';
-
+import { BsSaveFill } from "react-icons/bs";
+import { RiDeleteBinFill } from "react-icons/ri";
+import InfiniteScroll from 'react-infinite-scroll-component';
 export default function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
 
   const [loading, setLoading] = useState(false);
   const [tempSearchTerm, setTempSearchTerm] = useState("");
@@ -23,10 +26,13 @@ export default function Home() {
 
   // Fetch news based on keyword & date
   const getNews = async (searchKey, date) => {
+
     try {
       setLoading(true);
+
       const newsData = await FetchNews(searchKey || "india", date);
       const articles = newsData.result?.articles || [];
+
       dispatch(SetNews(articles));
     } catch (error) {
       console.log(error);
@@ -72,7 +78,7 @@ export default function Home() {
       {/* Header */}
       <div
         style={{
-          background: "#ffffff",
+          background: "#f8f9fa",
           padding: "15px 0",
           borderBottom: "1px solid #dee2e6",
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
@@ -148,46 +154,59 @@ export default function Home() {
       )}
 
 
-      {/* News cards */}
-      <Row xs={1} md={2} lg={4} className="g-4 p-3 no-news">
-        {!loading && dataToShow.length === 0 && (
-          <Col className="text-center">
-            <h5>No News Found</h5>
-          </Col>
-        )}
-
-        {dataToShow.map((item, index) => (
-          <Col key={index}>
-            <Card
-              className="news-card h-100 border-0"
-              onClick={() => handleCardClick(item)}
-            >
-              {item.urlToImage && (
-                <Card.Img variant="top" src={item.urlToImage} alt="news" />
-              )}
-              <Card.Body className="news-card-body">
-                <div>
-                  <Card.Title className="news-card-title">{item.title}</Card.Title>
-                  <Card.Text className="news-card-text">{item.description}</Card.Text>
-                </div>
-                <Button
-                  variant={isBookMarked(item) ? "outline-danger" : "outline-primary"}
-                  className="news-save-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSave(item);
-                  }}
-                  size="sm"
+      <div>
+        {/* News cards */}
+        <Row xs={1} md={2} lg={4} className="g-4 p-3 no-news">
+          {!loading && dataToShow.length === 0 && (
+            <Col className="text-center">
+              <h5>No News Found</h5>
+            </Col>
+          )}
+          {dataToShow.map((item, index) => (
+            <div className='block'>
+              <Col key={index}>
+                
+                <Card
+                  className="news-card h-100 border-0"
                 >
-                  {isBookMarked(item) ? "Remove" : "Save"}
-                </Button>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
+
+                  {item.urlToImage && (
+                    <Card.Img variant="top" src={item.urlToImage} alt="news" />
+                  )}
+                  <Card.Body className="news-card-body">
+                    <div>
+                      <Card.Title className="news-card-title">{item.title}</Card.Title>
+                      <Card.Text className="news-card-text">{item.description}</Card.Text>
+                    </div>
+                    <Row className='m-2'>
+                      <Col>
+                        <Button variant='secondary' onClick={() => handleCardClick(item)} style={{ width: "7rem", borderRadius: "5rem" }}>Read more</Button>
+                      </Col>
+                      <Col>
+                        <Button
+                          variant={isBookMarked(item) ? "danger" : "primary"}
+                          className="news-save-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSave(item);
+                          }}
+
+                          size="sm"
+                        >
+                          {isBookMarked(item) ? <RiDeleteBinFill /> : <BsSaveFill />}
+                        </Button>
+
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </div>
+          ))}
 
           <SpinerCom loading={loading} />
-      </Row>
+        </Row>
+      </div>
 
     </div>
   );

@@ -7,7 +7,7 @@ export default function NewsDetail() {
 
     if (!article) {
         return (
-            <div className="text-center mt-5">
+            <div className="text-center" style={{ marginTop: "90px" }}>
                 <h3>No article selected</h3>
                 <button className="btn btn-primary mt-3" onClick={() => navigate(-1)}>Go Back</button>
             </div>
@@ -27,8 +27,6 @@ export default function NewsDetail() {
             <a href={article.url} target="_blank" >
                 Read Full Article
             </a>
-            {console.log(article)}
-
         </div>
     );
 }

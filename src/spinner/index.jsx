@@ -1,5 +1,6 @@
-import { PropagateLoader
- } from "react-spinners";
+import {
+    PropagateLoader
+} from "react-spinners";
 export default function SpinerCom(props) {
     return (
         <PropagateLoader
