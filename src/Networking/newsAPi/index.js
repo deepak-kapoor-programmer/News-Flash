@@ -10,17 +10,12 @@ export const FetchNews = async (keyword = "india", date = null, useTopHeadlines 
     if (useTopHeadlines) {
         // Top headlines (default home view)
         // console.log("headline");
-
         url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=${apikey}`;
     } else if (date) {
         // console.log("date");
-
-
         url = `https://newsapi.org/v2/everything?q=${keyword}&from=${date}&to=${date}&sortBy=popularity&apiKey=${apikey}`;
     } else {
         // console.log("keywords");
-
-
         url = `https://newsapi.org/v2/everything?q=${keyword}&sortBy=popularity&apiKey=${apikey}`;
     }
     // if (date) {

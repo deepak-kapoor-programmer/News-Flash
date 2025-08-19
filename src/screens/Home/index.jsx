@@ -8,6 +8,7 @@ import { FetchNews } from '../../Networking/newsAPi';
 import SpinerCom from '../../spinner';
 import { BsSaveFill } from "react-icons/bs";
 import { RiDeleteBinFill } from "react-icons/ri";
+import FadeSpiner from '../../spinner/second-spiner';
 import InfiniteScroll from 'react-infinite-scroll-component';
 export default function Home() {
   const dispatch = useDispatch();
@@ -21,6 +22,10 @@ export default function Home() {
   const keyword = useSelector((state) => state.Category.SearchNews);
   const bookmarks = useSelector((state) => state.Bookmark);
   const dataToShow = useSelector((state) => state.Category.news);
+  console.log("Data is: ", dataToShow);
+  const [count, setcount] = useState(8);
+
+
 
   const isBookMarked = (item) => bookmarks.some((article) => article.url === item.url);
 
@@ -72,6 +77,23 @@ export default function Home() {
     dispatch(setSingleNews(item));
     navigate(`/news/${encodeURIComponent(item.title)}`);
   };
+  useEffect(() => {
+    function handleScroll() {
+      // console.log(window.innerHeight,window.scrollY,document.body.offsetHeight);
+      if (window.innerHeight + window.scrollY + 10 >=
+        document.body.offsetHeight && count < dataToShow.length) {
+        setLoading(true);
+        setTimeout(() => {
+          setLoading(false)
+          setcount((c) => c + 4);
+        }, 1000)
+      }
+    }
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    }
+  },[count]);
 
   return (
     <div style={{ marginTop: "90px" }}>
@@ -162,10 +184,28 @@ export default function Home() {
               <h5>No News Found</h5>
             </Col>
           )}
-          {dataToShow.map((item, index) => (
-            <div className='block'>
+          {loading && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: "rgba(255, 255, 255, 0.7)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 999,
+              }}
+            >
+              <FadeSpiner loading={loading} />
+            </div>
+          )}
+          {dataToShow.slice(0, count).map((item, index) => (
+            <div className='block' key={index}>
               <Col key={index}>
-                
+
                 <Card
                   className="news-card h-100 border-0"
                 >
@@ -203,7 +243,6 @@ export default function Home() {
               </Col>
             </div>
           ))}
-
           <SpinerCom loading={loading} />
         </Row>
       </div>

@@ -8,6 +8,7 @@ import { AddBookmark, RemoveBookMark } from "../../../redux/Bookmark";
 import SpinerCom from "../../../spinner";
 import { RiDeleteBinFill } from "react-icons/ri";
 import { BsSaveFill } from "react-icons/bs";
+import FadeSpiner from "../../../spinner/second-spiner";
 
 export default function Category() {
     const dispatch = useDispatch();
@@ -33,6 +34,17 @@ export default function Category() {
             dispatch(AddBookmark(item));
         }
     }
+    // useEffect(()=>{
+    //    try {
+    //     setLoading(true)
+    //    } catch (error) {
+    //     console.log(error);
+
+    //    }finally{
+    //     setLoading(false)
+
+    //    }
+    // })
     useEffect(() => {
         const loadNews = async () => {
             try {
@@ -52,9 +64,29 @@ export default function Category() {
         };
         loadNews();
     }, [categoryName, dispatch]);
+    const [count, setcount] = useState(8);
+    useEffect(() => {
+        function handleScroll() {
+            // console.log(window.innerHeight,window.scrollY,document.body.offsetHeight);
+            if (window.innerHeight + window.scrollY + 10 >=
+                document.body.offsetHeight && count < Data.length) {
+                setLoading(true);
+                setTimeout(() => {
+                    setLoading(false)
+                    setcount((c) => c + 4);
+                }, 1000)
+            }
+        }
+        window.addEventListener("scroll", handleScroll);
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+        }
+    }, [count, Data]);
 
     return (
+
         <div style={{ marginTop: "90px" }}>
+
             {Data.length > 0 && (
                 <marquee
                     behavior="scroll"
@@ -79,9 +111,27 @@ export default function Category() {
                             <h5>No News Found</h5>
                         </Col>
                     )}
+                    {loading && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%",
+                                background: "rgba(255, 255, 255, 0.7)",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                zIndex: 999,
+                            }}
+                        >
+                            <FadeSpiner loading={loading} />
 
-                    {Data.map((item, index) => (
-                        <div className='block'>
+                        </div>
+                    )}
+                    {Data.slice(0, count).map((item, index) => (
+                        <div className='block' key={index}>
                             <Col key={index}>
                                 <Card
                                     className="news-card h-100 border-0"

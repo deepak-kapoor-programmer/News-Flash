@@ -1,11 +1,11 @@
 import {
-    PropagateLoader
+    FadeLoader
 } from "react-spinners";
-export default function SpinerCom({loading}) {
+export default function FadeSpiner({ loading }) {
     return (
-        <PropagateLoader
+        <FadeLoader
             className="mx-auto"
-            color="navy"
+            color="grey"
             loading={loading}
             size={10}
             aria-label="Loading Spinner"
